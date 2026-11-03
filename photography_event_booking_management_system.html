@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography Event Management System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
+        .card-hover:hover { transform: translateY(-3px); transition: transform 0.2s ease; }
+        /* Printable Invoice Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #printable-invoice, #printable-invoice * { visibility: visible; }
+            #printable-invoice { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="glass-header text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo / Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('customer')">
+                <div class="bg-gradient-to-r from-amber-500 to-rose-500 text-white p-2 rounded-xl shadow-lg">
+                    <i class="fa-solid font-bold fa-camera-retro text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 to-rose-400 bg-clip-text text-transparent">LensCraft</span>
+                    <span class="text-xs block text-slate-400 font-medium">Event Studio System</span>
+                </div>
+            </div>
+
+            <!-- Top Right Navigation Bar Buttons -->
+            <nav class="hidden md:flex items-center space-x-2">
+                <button id="nav-customer" onclick="switchTab('customer')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center space-x-2 bg-rose-600 text-white shadow-sm">
+                    <i class="fa-solid fa-user-pen"></i>
+                    <span>Customer Portal</span>
+                </button>
+                <button id="nav-counter" onclick="switchTab('counter')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-cash-register"></i>
+                    <span>Counter Desk</span>
+                </button>
+                <button id="nav-photographer" onclick="switchTab('photographer')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Photographer</span>
+                </button>
+                <button id="nav-admin" onclick="switchTab('admin')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Admin Panel</span>
+                </button>
+             
+            </nav>
+
+            <!-- Mobile Menu Toggle Button -->
+            <div class="md:hidden flex items-center">
+                <button onclick="toggleMobileMenu()" class="text-slate-300 hover:text-white text-2xl focus:outline-none">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-2">
+            <button onclick="switchTab('customer'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-white bg-rose-600 flex items-center space-x-2">
+                <i class="fa-solid fa-user-pen"></i><span>Customer Portal</span>
+            </button>
+            <button onclick="switchTab('counter'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 flex items-center space-x-2">
+                <i class="fa-solid fa-cash-register"></i><span>Counter Desk</span>
+            </button>
+            <button onclick="switchTab('photographer'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 flex items-center space-x-2">
+                <i class="fa-solid fa-camera"></i><span>Photographer Portal</span>
+            </button>
+            <button onclick="switchTab('admin'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 flex items-center space-x-2">
+                <i class="fa-solid fa-sliders"></i><span>Admin Panel</span>
+            </button>
+            <button onclick="openScriptModal(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-sm font-bold bg-amber-500 text-slate-950 flex items-center space-x-2">
+                <i class="fa-solid fa-code"></i><span>GAS Apps Script Code & Setup</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ALERT NOTIFICATION BANNER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ========================================== -->
+        <!-- 1. CUSTOMER PORTAL (DEFAULT VIEW) -->
+        <!-- ========================================== -->
+        <section id="portal-customer" class="tab-content">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                    <div class="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 p-6 sm:p-8 text-white relative">
+                        <div class="relative z-10">
+                            <span class="inline-block px-3 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-full text-xs font-semibold uppercase tracking-wider mb-2">Registration</span>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold">Event Photography Package Booking</h1>
+                            <p class="text-slate-300 text-sm mt-1">Fill in your details below to reserve your custom photo memory package.</p>
+                        </div>
+                    </div>
+
+                    <form id="customer-form" onsubmit="handleCustomerSubmit(event)" class="p-6 sm:p-8 space-y-6">
+                        <!-- Step 1: Select Active Event -->
+                        <div class="border-b border-slate-100 pb-6">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">1. Select Event <span class="text-rose-500">*</span></label>
+                            <select id="cust-event-select" onchange="renderCustomerPackages()" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 bg-slate-50/50 text-slate-800 font-medium">
+                                <option value="">-- Choose Active Event --</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Only currently active events managed by admins are shown here.</p>
+                        </div>
+
+                        <!-- Step 2: Choose Package (Dynamic Cards with Photos) -->
+                        <div class="border-b border-slate-100 pb-6">
+                            <label class="block text-sm font-bold text-slate-700 mb-3">2. Choose Photography Package <span class="text-rose-500">*</span></label>
+                            <input type="hidden" id="cust-package-input" required>
+                            
+                            <div id="customer-packages-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="col-span-full py-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
+                                    <i class="fa-solid fa-image text-3xl mb-2"></i>
+                                    <p class="text-sm font-medium">Please select an event above to view available packages.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Personal & Contact Information -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">3. Customer Details</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="cust-name" required placeholder="e.g. Kasun Perera" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Email Address <span class="text-rose-500">*</span></label>
+                                    <input type="email" id="cust-email" required placeholder="name@domain.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Phone Number <span class="text-rose-500">*</span></label>
+                                    <input type="tel" id="cust-phone" required placeholder="07X XXXXXXX" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp Number <span class="text-rose-500">*</span></label>
+                                    <input type="tel" id="cust-whatsapp" required placeholder="07X XXXXXXX" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Seat / Hall No <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="cust-seat" required placeholder="e.g. A-42" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Courier Delivery Option <span class="text-rose-500">*</span></label>
+                                    <select id="cust-courier" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 bg-white">
+                                        <option value="Self Pickup">Self Pickup (No Courier)</option>
+                                        <option value="Prompt Express Courier">Prompt Express Courier</option>
+                                        <option value="Domex Courier">Domex Courier</option>
+                                        <option value="Pronto Lanka">Pronto Lanka Courier</option>
+                                        <option value="Standard Postal Service">Standard Postal Delivery</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Event Date <span class="text-rose-500">*</span></label>
+                                    <input type="date" id="cust-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Full Delivery Address <span class="text-rose-500">*</span></label>
+                                <textarea id="cust-address" rows="2" required placeholder="Enter complete home or office postal address for delivery..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Form Submit Button -->
+                        <div class="pt-4">
+                            <button type="submit" class="w-full py-4 px-6 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.99] flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Submit Booking Order</span>
+                            </button>
+                            <p class="text-center text-xs text-slate-500 mt-2">Note: Upon submission, your order status will be marked as <strong>Payment Pending</strong> until verified at the counter.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 2. COUNTER DESK PORTAL (POS & EDIT) -->
+        <!-- ========================================== -->
+        <section id="portal-counter" class="tab-content hidden">
+            <div class="space-y-6">
+                <!-- Counter Header & Search -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <i class="fa-solid fa-cash-register text-rose-600"></i>
+                            <span>Counter Desk POS & Order Management</span>
+                        </h2>
+                        <p class="text-slate-500 text-xs mt-0.5">Manage all bookings, edit customer details, switch packages, collect payments & issue invoices.</p>
+                    </div>
+                    <div class="flex items-center space-x-3 w-full md:w-auto">
+                        <div class="relative w-full md:w-72">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                            <input type="text" id="counter-search" oninput="renderCounterOrders()" placeholder="Search Name, Phone, Seat..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider font-semibold">
+                                    <th class="p-4">Order ID & Date</th>
+                                    <th class="p-4">Customer Details</th>
+                                    <th class="p-4">Seat / Event</th>
+                                    <th class="p-4">Selected Package</th>
+                                    <th class="p-4">Courier Method</th>
+                                    <th class="p-4">Payment Status</th>
+                                    <th class="p-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="counter-orders-table-body" class="divide-y divide-slate-200 text-sm">
+                                <!-- Dynamic Order Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 3. PHOTOGRAPHER PORTAL -->
+        <!-- ========================================== -->
+        <section id="portal-photographer" class="tab-content hidden">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Search Only Paid Customers Notice -->
+                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                            <i class="fa-solid fa-camera-retro text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">Photographer Desk</h2>
+                            <p class="text-xs text-slate-400">Search customer by Name or Phone. Only <strong>PAID</strong> customers will appear for photo metadata tagging.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Search Bar -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Find Paid Customer</label>
+                    <div class="flex gap-2">
+                        <div class="relative flex-grow">
+                            <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                            <input type="text" id="photo-search-input" placeholder="Type Customer Name, Phone, or Order ID..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 text-sm font-medium">
+                        </div>
+                        <button onclick="searchPhotographerCustomer()" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results & Studio Tagging Card -->
+                <div id="photo-customer-result" class="hidden bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                    <div class="bg-emerald-50 border-b border-emerald-100 p-4 px-6 flex items-center justify-between">
+                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Customer Found (Verified Paid)
+                        </span>
+                        <span id="photo-order-id" class="text-xs font-mono font-bold text-slate-500"></span>
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                        <!-- Customer Info Summary -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl text-xs">
+                            <div>
+                                <span class="text-slate-400 block font-semibold">Customer Name</span>
+                                <span id="photo-cust-name" class="font-bold text-slate-800 text-sm"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block font-semibold">Seat Number</span>
+                                <span id="photo-cust-seat" class="font-bold text-slate-800 text-sm"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block font-semibold">Event Name</span>
+                                <span id="photo-cust-event" class="font-bold text-slate-800 text-sm"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block font-semibold">Package</span>
+                                <span id="photo-cust-package" class="font-bold text-rose-600 text-sm"></span>
+                            </div>
+                        </div>
+
+                        <!-- Photographer Metadata Input Form -->
+                        <form id="photographer-form" onsubmit="savePhotographerData(event)" class="space-y-4 pt-2">
+                            <h4 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Enter Image & Studio Information</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Studio No / Room <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="photo-studio-no" required placeholder="e.g. Studio 02" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Start Image No <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="photo-start-img" required placeholder="e.g. DSC_1001" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">End Image No <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="photo-end-img" required placeholder="e.g. DSC_1015" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Save & Complete Photo Tagging</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 4. ADMIN CONTROL PANEL -->
+        <!-- ========================================== -->
+        <section id="portal-admin" class="tab-content hidden">
+            <div class="space-y-8">
+                <!-- Admin Header & Export -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <i class="fa-solid fa-sliders text-rose-600"></i>
+                            <span>Admin Control & Configuration</span>
+                        </h2>
+                        <p class="text-slate-500 text-xs mt-0.5">Manage events status (Active/Deactive), setup photography packages with photos, and export full reports.</p>
+                    </div>
+                    <button onclick="exportToExcel()" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Export Full Data to Excel (CSV)</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- EVENT MANAGEMENT SECTION -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-calendar-days text-rose-500 mr-2"></i>Event Management</span>
+                        </h3>
+
+                        <!-- Add New Event Form -->
+                        <form onsubmit="handleAddEvent(event)" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-600 uppercase">Create New Event</span>
+                            <div class="flex gap-2">
+                                <input type="text" id="admin-event-name" required placeholder="Event Title (e.g. Convocation 2026)" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300">
+                                <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg transition whitespace-nowrap">
+                                    + Add Event
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Existing Events List -->
+                        <div class="space-y-2 max-h-80 overflow-y-auto pr-1" id="admin-events-list">
+                            <!-- Dynamic Event Items -->
+                        </div>
+                    </div>
+
+                    <!-- PACKAGE MANAGEMENT SECTION -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+                            <i class="fa-solid fa-box text-rose-500 mr-2"></i>Package Management with Photos
+                        </h3>
+
+                        <!-- Add New Package Form -->
+                        <form onsubmit="handleAddPackage(event)" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-600 uppercase">Add New Package to Event</span>
+                            
+                            <select id="admin-pkg-event" required class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white">
+                                <option value="">-- Select Event --</option>
+                            </select>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="admin-pkg-name" required placeholder="Package Name (e.g. VIP Gold)" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300">
+                                <input type="number" id="admin-pkg-price" required placeholder="Price (LKR)" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300">
+                            </div>
+
+                            <input type="url" id="admin-pkg-img" placeholder="Photo URL (https://images.unsplash.com/...)" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300">
+
+                            <textarea id="admin-pkg-desc" rows="2" placeholder="Features / Description..." class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300"></textarea>
+
+                            <button type="submit" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg transition">
+                                + Save Package
+                            </button>
+                        </form>
+
+                        <!-- Existing Packages List -->
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1" id="admin-packages-list">
+                            <!-- Dynamic Package Items -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- EDIT ORDER MODAL FOR COUNTER DESK -->
+    <div id="modal-edit-order" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-lg text-slate-900">Edit Customer Booking & Package</h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <form onsubmit="saveEditedOrder(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="edit-order-id">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Customer Name</label>
+                        <input type="text" id="edit-name" required class="w-full px-3 py-2 rounded-lg border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Phone Number</label>
+                        <input type="text" id="edit-phone" required class="w-full px-3 py-2 rounded-lg border border-slate-300">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Seat Number</label>
+                        <input type="text" id="edit-seat" required class="w-full px-3 py-2 rounded-lg border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Courier Method</label>
+                        <select id="edit-courier" required class="w-full px-3 py-2 rounded-lg border border-slate-300">
+                            <option value="Self Pickup">Self Pickup (No Courier)</option>
+                            <option value="Prompt Express Courier">Prompt Express Courier</option>
+                            <option value="Domex Courier">Domex Courier</option>
+                            <option value="Pronto Lanka">Pronto Lanka Courier</option>
+                            <option value="Standard Postal Service">Standard Postal Delivery</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Package Selection (Counter Change/Upgrade)</label>
+                    <select id="edit-package-select" required class="w-full px-3 py-2 rounded-lg border border-slate-300 font-semibold text-rose-600">
+                        <!-- Dynamic options loaded per event -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Full Delivery Address</label>
+                    <textarea id="edit-address" rows="2" required class="w-full px-3 py-2 rounded-lg border border-slate-300"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- INVOICE PRINT MODAL FOR COUNTER -->
+    <div id="modal-invoice" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between no-print">
+                <span class="text-xs font-bold text-slate-400 uppercase">Official Receipt Preview</span>
+                <div class="space-x-2">
+                    <button onclick="window.print()" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800">
+                        <i class="fa-solid fa-print mr-1"></i> Print Invoice
+                    </button>
+                    <button onclick="closeInvoiceModal()" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-300">&times;</button>
+                </div>
+            </div>
+
+            <!-- Printable Invoice Content -->
+            <div id="printable-invoice" class="bg-white p-6 rounded-xl border border-slate-200 text-slate-800 space-y-4 text-xs">
+                <div class="flex justify-between items-start border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">LENSCRAFT STUDIO</h2>
+                        <p class="text-slate-500">Official Photography Event Receipt</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold font-mono text-rose-600 text-sm" id="inv-order-id">#ORD-000</p>
+                        <p class="text-slate-400" id="inv-date"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 py-2">
+                    <div>
+                        <span class="font-bold block text-slate-400 uppercase text-[10px]">Customer Details</span>
+                        <p class="font-bold text-sm text-slate-900" id="inv-cust-name"></p>
+                        <p class="text-slate-600" id="inv-cust-phone"></p>
+                        <p class="text-slate-600" id="inv-cust-email"></p>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-bold block text-slate-400 uppercase text-[10px]">Event & Seat</span>
+                        <p class="font-bold text-slate-800" id="inv-event"></p>
+                        <p class="text-slate-600" id="inv-seat"></p>
+                        <p class="text-slate-600" id="inv-courier"></p>
+                    </div>
+                </div>
+
+                <div class="border-t border-b border-slate-200 py-3 my-2">
+                    <div class="flex justify-between font-bold text-slate-700 mb-1">
+                        <span>Description</span>
+                        <span>Amount (LKR)</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span id="inv-package-name"></span>
+                        <span id="inv-package-price" class="font-semibold"></span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <div class="text-[10px] text-slate-400">
+                        Status: <span id="inv-status-badge" class="font-bold uppercase px-2 py-0.5 rounded"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-500 block text-[10px]">Total Paid</span>
+                        <span class="text-lg font-black text-emerald-600" id="inv-total-amount"></span>
+                    </div>
+                </div>
+
+                <div class="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-4">
+                    Thank you for choosing LensCraft Studio! Keep this receipt for reference.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GOOGLE APPS SCRIPT CODE INSTRUCTIONS MODAL -->
+    <div id="modal-script-code" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-code text-amber-500"></i> Google Apps Script (`Code.gs`) Backend Instructions
+                    </h3>
+                    <p class="text-xs text-slate-500">Copy this code into your Google Sheet's Apps Script editor (`Extensions > Apps Script`).</p>
+                </div>
+                <button onclick="closeScriptModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto flex-grow bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono space-y-4 select-all">
+                <pre id="code-snippet-box" class="whitespace-pre-wrap leading-relaxed">
+
+                </pre>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeScriptModal()" class="px-5 py-2 bg-slate-900 text-white font-bold rounded-lg text-xs">Close Instructions</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ==========================================
+        // INITIAL MOCK STATE DATA (Pre-populated)
+        // ==========================================
+        let state = {
+            events: [
+                { id: "EVT-101", name: "University Graduation Convocation 2026", status: "Active" },
+                { id: "EVT-102", name: "Royal Annual Sports Meet 2026", status: "Active" },
+                { id: "EVT-103", name: "Colombo Fashion Week Gala 2025", status: "Inactive" }
+            ],
+            packages: [
+                {
+                    id: "PKG-01",
+                    eventId: "EVT-101",
+                    name: "Basic Stage Shoot",
+                    price: 4500,
+                    img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60",
+                    desc: "Includes 2 High-Res Stage Photos (8x12 Print) + Digital Soft Copy via Email."
+                },
+                {
+                    id: "PKG-02",
+                    eventId: "EVT-101",
+                    name: "VIP Portrait Package",
+                    price: 8500,
+                    img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=500&auto=format&fit=crop&q=60",
+                    desc: "Stage Shoot + Studio Family Portrait + 3 Laminated Prints + All Raw Digital Copies."
+                },
+                {
+                    id: "PKG-03",
+                    eventId: "EVT-101",
+                    name: "Premium Luxury Canvas",
+                    price: 15000,
+                    img: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=500&auto=format&fit=crop&q=60",
+                    desc: "Full Family Shoot + Large Wooden Canvas Print (16x24) + Custom Framed Keepsake."
+                },
+                {
+                    id: "PKG-04",
+                    eventId: "EVT-102",
+                    name: "Athlete Sports Pass",
+                    price: 3500,
+                    img: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500&auto=format&fit=crop&q=60",
+                    desc: "Action Sports Photography on Track + Winner Medal Portrait Print."
+                }
+            ],
+            orders: [
+                {
+                    orderId: "ORD-8921",
+                    date: "2026-11-03",
+                    name: "Saman Kumara",
+                    email: "saman@gmail.com",
+                    phone: "0771234567",
+                    whatsapp: "0771234567",
+                    seat: "A-12",
+                    courier: "Prompt Express Courier",
+                    eventName: "University Graduation Convocation 2026",
+                    eventId: "EVT-101",
+                    packageName: "VIP Portrait Package",
+                    price: 8500,
+                    address: "No 45, Main Street, Nugegoda, Colombo",
+                    status: "Payment Pending",
+                    studioNo: "",
+                    startImg: "",
+                    endImg: ""
+                },
+                {
+                    orderId: "ORD-8922",
+                    date: "2026-11-03",
+                    name: "Nimali Fernando",
+                    email: "nimali@yahoo.com",
+                    phone: "0719876543",
+                    whatsapp: "0719876543",
+                    seat: "B-05",
+                    courier: "Domex Courier",
+                    eventName: "University Graduation Convocation 2026",
+                    eventId: "EVT-101",
+                    packageName: "Basic Stage Shoot",
+                    price: 4500,
+                    address: "12/A, Station Road, Galle",
+                    status: "Paid",
+                    studioNo: "Studio 01",
+                    startImg: "DSC_4001",
+                    endImg: "DSC_4010"
+                }
+            ]
+        };
+
+        // ==========================================
+        // SYSTEM NAVIGATION SWITCHER
+        // ==========================================
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Deactivate all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-rose-600', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+            });
+
+            // Show selected tab & highlight active button
+            const activeTab = document.getElementById(`portal-${tabId}`);
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            
+            if (activeTab) activeTab.classList.remove('hidden');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+                activeBtn.classList.add('bg-rose-600', 'text-white', 'shadow-sm');
+            }
+
+            // Refresh tab views
+            if (tabId === 'customer') renderCustomerEventSelect();
+            if (tabId === 'counter') renderCounterOrders();
+            if (tabId === 'admin') { renderAdminEvents(); renderAdminPackages(); }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // ==========================================
+        // 1. CUSTOMER PORTAL LOGIC
+        // ==========================================
+        function renderCustomerEventSelect() {
+            const select = document.getElementById('cust-event-select');
+            select.innerHTML = '<option value="">-- Choose Active Event --</option>';
+            
+            // Filter ONLY Active events
+            const activeEvents = state.events.filter(e => e.status === 'Active');
+            activeEvents.forEach(evt => {
+                select.innerHTML += `<option value="${evt.id}">${evt.name}</option>`;
+            });
+        }
+
+        function renderCustomerPackages() {
+            const eventId = document.getElementById('cust-event-select').value;
+            const grid = document.getElementById('customer-packages-grid');
+            const pkgInput = document.getElementById('cust-package-input');
+            pkgInput.value = ""; // Reset selection
+
+            if (!eventId) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
+                        <i class="fa-solid fa-image text-3xl mb-2"></i>
+                        <p class="text-sm font-medium">Please select an event above to view available packages.</p>
+                    </div>`;
+                return;
+            }
+
+            const availPackages = state.packages.filter(p => p.eventId === eventId);
+            
+            if (availPackages.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-6 text-center text-slate-500 font-medium">No packages configured for this event yet.</div>`;
+                return;
+            }
+
+            grid.innerHTML = availPackages.map(pkg => `
+                <div onclick="selectPackageCard('${pkg.id}')" id="pkg-card-${pkg.id}" class="package-card border-2 border-slate-200 rounded-xl overflow-hidden cursor-pointer hover:border-rose-500 transition bg-white shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="h-36 bg-slate-100 overflow-hidden relative">
+                            <img src="${pkg.img || 'https://placehold.co/400x300/1e293b/fff?text=Photo+Package'}" alt="${pkg.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300/1e293b/fff?text=Package+Photo'">
+                            <span class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-sm text-amber-400 text-xs font-bold px-2.5 py-1 rounded-md">
+                                LKR ${pkg.price.toLocaleString()}
+                            </span>
+                        </div>
+                        <div class="p-4 space-y-2">
+                            <h4 class="font-bold text-slate-900 text-base leading-snug">${pkg.name}</h4>
+                            <p class="text-xs text-slate-500 line-clamp-3">${pkg.desc}</p>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                        <span class="select-badge text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-center gap-1">
+                            <i class="fa-regular fa-circle"></i> Select Package
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectPackageCard(pkgId) {
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.classList.remove('border-rose-600', 'ring-2', 'ring-rose-500', 'bg-rose-50/20');
+                card.querySelector('.select-badge').innerHTML = '<i class="fa-regular fa-circle"></i> Select Package';
+                card.querySelector('.select-badge').classList.replace('text-rose-600', 'text-slate-400');
+            });
+
+            const selectedCard = document.getElementById(`pkg-card-${pkgId}`);
+            selectedCard.classList.add('border-rose-600', 'ring-2', 'ring-rose-500', 'bg-rose-50/20');
+            selectedCard.querySelector('.select-badge').innerHTML = '<i class="fa-solid fa-circle-check text-rose-600"></i> Selected';
+            selectedCard.querySelector('.select-badge').classList.replace('text-slate-400', 'text-rose-600');
+
+            document.getElementById('cust-package-input').value = pkgId;
+        }
+
+        function handleCustomerSubmit(e) {
+            e.preventDefault();
+            const pkgId = document.getElementById('cust-package-input').value;
+            if (!pkgId) {
+                showToast("Please choose a photography package first!", "error");
+                return;
+            }
+
+            const selectedEventId = document.getElementById('cust-event-select').value;
+            const eventObj = state.events.find(ev => ev.id === selectedEventId);
+            const packageObj = state.packages.find(pk => pk.id === pkgId);
+
+            const newOrder = {
+                orderId: "ORD-" + Math.floor(1000 + Math.random() * 9000),
+                date: document.getElementById('cust-date').value || new Date().toISOString().split('T')[0],
+                name: document.getElementById('cust-name').value,
+                email: document.getElementById('cust-email').value,
+                phone: document.getElementById('cust-phone').value,
+                whatsapp: document.getElementById('cust-whatsapp').value,
+                seat: document.getElementById('cust-seat').value,
+                courier: document.getElementById('cust-courier').value,
+                eventName: eventObj ? eventObj.name : "Event",
+                eventId: selectedEventId,
+                packageName: packageObj ? packageObj.name : "Package",
+                price: packageObj ? packageObj.price : 0,
+                address: document.getElementById('cust-address').value,
+                status: "Payment Pending",
+                studioNo: "",
+                startImg: "",
+                endImg: ""
+            };
+
+            state.orders.unshift(newOrder);
+            showToast(`Booking ${newOrder.orderId} submitted! Status: Payment Pending.`, "success");
+
+            // Reset Form
+            document.getElementById('customer-form').reset();
+            renderCustomerPackages();
+        }
+
+        // ==========================================
+        // 2. COUNTER DESK POS LOGIC
+        // ==========================================
+        function renderCounterOrders() {
+            const tbody = document.getElementById('counter-orders-table-body');
+            const searchStr = document.getElementById('counter-search').value.toLowerCase();
+            
+            const filteredOrders = state.orders.filter(o => 
+                o.name.toLowerCase().includes(searchStr) ||
+                o.phone.includes(searchStr) ||
+                o.seat.toLowerCase().includes(searchStr) ||
+                o.orderId.toLowerCase().includes(searchStr)
+            );
+
+            if (filteredOrders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">No orders matching search criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredOrders.map(order => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4">
+                        <span class="font-bold text-slate-900 block font-mono text-xs">${order.orderId}</span>
+                        <span class="text-[11px] text-slate-400">${order.date}</span>
+                    </td>
+                    <td class="p-4">
+                        <div class="font-semibold text-slate-900">${order.name}</div>
+                        <div class="text-xs text-slate-500"><i class="fa-solid fa-phone text-[10px] mr-1"></i>${order.phone} / WA: ${order.whatsapp}</div>
+                        <div class="text-[11px] text-slate-400 truncate max-w-xs" title="${order.address}"><i class="fa-solid fa-location-dot text-[10px] mr-1"></i>${order.address}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 bg-slate-100 rounded text-xs font-bold text-slate-700 block w-fit mb-1">${order.seat}</span>
+                        <span class="text-xs text-slate-500">${order.eventName}</span>
+                    </td>
+                    <td class="p-4">
+                        <span class="font-semibold text-rose-600 block">${order.packageName}</span>
+                        <span class="text-xs font-bold text-slate-700">LKR ${order.price.toLocaleString()}</span>
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-block text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded font-medium">${order.courier}</span>
+                    </td>
+                    <td class="p-4">
+                        ${order.status === 'Paid' 
+                            ? `<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center w-fit gap-1"><i class="fa-solid fa-check"></i> Paid</span>`
+                            : `<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center w-fit gap-1"><i class="fa-solid fa-clock"></i> Payment Pending</span>`
+                        }
+                    </td>
+                    <td class="p-4 text-center">
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="togglePaymentStatus('${order.orderId}')" title="${order.status === 'Paid' ? 'Mark Pending' : 'Mark Paid'}" class="p-2 rounded-lg ${order.status === 'Paid' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'} text-xs font-bold transition">
+                                ${order.status === 'Paid' ? '<i class="fa-solid fa-undo"></i>' : '<i class="fa-solid fa-sack-dollar"></i> Paid'}
+                            </button>
+                            <button onclick="openEditModal('${order.orderId}')" title="Edit Order Details & Package" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="generateInvoice('${order.orderId}')" title="Generate Receipt" class="p-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition">
+                                <i class="fa-solid fa-receipt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function togglePaymentStatus(orderId) {
+            const order = state.orders.find(o => o.orderId === orderId);
+            if (order) {
+                order.status = order.status === 'Paid' ? 'Payment Pending' : 'Paid';
+                showToast(`Order ${orderId} marked as ${order.status}`, "info");
+                renderCounterOrders();
+            }
+        }
+
+        function openEditModal(orderId) {
+            const order = state.orders.find(o => o.orderId === orderId);
+            if (!order) return;
+
+            document.getElementById('edit-order-id').value = order.orderId;
+            document.getElementById('edit-name').value = order.name;
+            document.getElementById('edit-phone').value = order.phone;
+            document.getElementById('edit-seat').value = order.seat;
+            document.getElementById('edit-courier').value = order.courier;
+            document.getElementById('edit-address').value = order.address;
+
+            // Load package options for this order's event
+            const pkgSelect = document.getElementById('edit-package-select');
+            const eventPkgs = state.packages.filter(p => p.eventId === order.eventId);
+            pkgSelect.innerHTML = eventPkgs.map(p => `<option value="${p.id}" ${p.name === order.packageName ? 'selected' : ''}>${p.name} (LKR ${p.price.toLocaleString()})</option>`).join('');
+
+            document.getElementById('modal-edit-order').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('modal-edit-order').classList.add('hidden');
+        }
+
+        function saveEditedOrder(e) {
+            e.preventDefault();
+            const orderId = document.getElementById('edit-order-id').value;
+            const order = state.orders.find(o => o.orderId === orderId);
+            if (order) {
+                order.name = document.getElementById('edit-name').value;
+                order.phone = document.getElementById('edit-phone').value;
+                order.seat = document.getElementById('edit-seat').value;
+                order.courier = document.getElementById('edit-courier').value;
+                order.address = document.getElementById('edit-address').value;
+
+                const selectedPkgId = document.getElementById('edit-package-select').value;
+                const pkgObj = state.packages.find(p => p.id === selectedPkgId);
+                if (pkgObj) {
+                    order.packageName = pkgObj.name;
+                    order.price = pkgObj.price;
+                }
+
+                showToast(`Order ${orderId} updated successfully!`, "success");
+                closeEditModal();
+                renderCounterOrders();
+            }
+        }
+
+        function generateInvoice(orderId) {
+            const order = state.orders.find(o => o.orderId === orderId);
+            if (!order) return;
+
+            document.getElementById('inv-order-id').innerText = order.orderId;
+            document.getElementById('inv-date').innerText = "Date: " + order.date;
+            document.getElementById('inv-cust-name').innerText = order.name;
+            document.getElementById('inv-cust-phone').innerText = "Tel: " + order.phone;
+            document.getElementById('inv-cust-email').innerText = order.email;
+            document.getElementById('inv-event').innerText = order.eventName;
+            document.getElementById('inv-seat').innerText = "Seat: " + order.seat;
+            document.getElementById('inv-courier').innerText = "Courier: " + order.courier;
+            document.getElementById('inv-package-name').innerText = order.packageName;
+            document.getElementById('inv-package-price').innerText = order.price.toLocaleString();
+            document.getElementById('inv-total-amount').innerText = "LKR " + order.price.toLocaleString();
+
+            const badge = document.getElementById('inv-status-badge');
+            badge.innerText = order.status;
+            if (order.status === 'Paid') {
+                badge.className = "font-bold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+            } else {
+                badge.className = "font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+            }
+
+            document.getElementById('modal-invoice').classList.remove('hidden');
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('modal-invoice').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 3. PHOTOGRAPHER PORTAL LOGIC
+        // ==========================================
+        let currentPhotoSearchOrder = null;
+
+        function searchPhotographerCustomer() {
+            const query = document.getElementById('photo-search-input').value.trim().toLowerCase();
+            const resultBox = document.getElementById('photo-customer-result');
+            
+            if (!query) {
+                showToast("Please enter customer name or phone to search.", "warning");
+                return;
+            }
+
+            // FILTER RULE: Only customer with PAID status can be found by Photographer!
+            const foundOrder = state.orders.find(o => 
+                (o.name.toLowerCase().includes(query) || o.phone.includes(query) || o.orderId.toLowerCase().includes(query))
+                && o.status === 'Paid'
+            );
+
+            if (!foundOrder) {
+                resultBox.classList.add('hidden');
+                showToast("No PAID customer record found. (Pending orders cannot be processed by photographers).", "error");
+                return;
+            }
+
+            currentPhotoSearchOrder = foundOrder;
+            document.getElementById('photo-order-id').innerText = foundOrder.orderId;
+            document.getElementById('photo-cust-name').innerText = foundOrder.name;
+            document.getElementById('photo-cust-seat').innerText = foundOrder.seat;
+            document.getElementById('photo-cust-event').innerText = foundOrder.eventName;
+            document.getElementById('photo-cust-package').innerText = foundOrder.packageName;
+
+            // Pre-fill existing metadata if available
+            document.getElementById('photo-studio-no').value = foundOrder.studioNo || "";
+            document.getElementById('photo-start-img').value = foundOrder.startImg || "";
+            document.getElementById('photo-end-img').value = foundOrder.endImg || "";
+
+            resultBox.classList.remove('hidden');
+        }
+
+        function savePhotographerData(e) {
+            e.preventDefault();
+            if (!currentPhotoSearchOrder) return;
+
+            currentPhotoSearchOrder.studioNo = document.getElementById('photo-studio-no').value;
+            currentPhotoSearchOrder.startImg = document.getElementById('photo-start-img').value;
+            currentPhotoSearchOrder.endImg = document.getElementById('photo-end-img').value;
+
+            showToast(`Photo details saved for ${currentPhotoSearchOrder.name}!`, "success");
+            document.getElementById('photo-customer-result').classList.add('hidden');
+            document.getElementById('photo-search-input').value = "";
+        }
+
+        // ==========================================
+        // 4. ADMIN CONTROL PANEL LOGIC
+        // ==========================================
+        function renderAdminEvents() {
+            const list = document.getElementById('admin-events-list');
+            const pkgSelect = document.getElementById('admin-pkg-event');
+
+            list.innerHTML = state.events.map(evt => `
+                <div class="flex items-center justify-between p-3 rounded-xl border ${evt.status === 'Active' ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 bg-slate-50'}">
+                    <div>
+                        <span class="font-bold text-sm text-slate-800 block">${evt.name}</span>
+                        <span class="text-xs ${evt.status === 'Active' ? 'text-emerald-700 font-semibold' : 'text-slate-400'}">${evt.status}</span>
+                    </div>
+                    <button onclick="toggleEventStatus('${evt.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${evt.status === 'Active' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+                        ${evt.status === 'Active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                </div>
+            `).join('');
+
+            // Populate Admin Package Creation Select Dropdown
+            pkgSelect.innerHTML = '<option value="">-- Select Event --</option>' + 
+                state.events.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        }
+
+        function handleAddEvent(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('admin-event-name');
+            const newEvent = {
+                id: "EVT-" + (100 + state.events.length + 1),
+                name: nameInput.value,
+                status: "Active"
+            };
+            state.events.push(newEvent);
+            nameInput.value = "";
+            showToast("New Event Created & Set to Active!", "success");
+            renderAdminEvents();
+        }
+
+        function toggleEventStatus(eventId) {
+            const evt = state.events.find(e => e.id === eventId);
+            if (evt) {
+                evt.status = evt.status === 'Active' ? 'Inactive' : 'Active';
+                showToast(`Event status changed to ${evt.status}`, "info");
+                renderAdminEvents();
+            }
+        }
+
+        function renderAdminPackages() {
+            const list = document.getElementById('admin-packages-list');
+            list.innerHTML = state.packages.map(pkg => {
+                const parentEvt = state.events.find(e => e.id === pkg.eventId);
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <img src="${pkg.img || 'https://placehold.co/100'}" class="w-10 h-10 rounded-lg object-cover border">
+                            <div>
+                                <span class="font-bold text-xs text-slate-900 block">${pkg.name}</span>
+                                <span class="text-[11px] text-slate-500">${parentEvt ? parentEvt.name : 'Unknown Event'}</span>
+                            </div>
+                        </div>
+                        <span class="font-bold text-xs text-rose-600">LKR ${pkg.price.toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleAddPackage(e) {
+            e.preventDefault();
+            const newPkg = {
+                id: "PKG-" + (state.packages.length + 1),
+                eventId: document.getElementById('admin-pkg-event').value,
+                name: document.getElementById('admin-pkg-name').value,
+                price: parseFloat(document.getElementById('admin-pkg-price').value) || 0,
+                img: document.getElementById('admin-pkg-img').value || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60",
+                desc: document.getElementById('admin-pkg-desc').value
+            };
+            state.packages.push(newPkg);
+            showToast("New package created with photo preview!", "success");
+            renderAdminPackages();
+            e.target.reset();
+        }
+
+        // ==========================================
+        // EXPORT TO EXCEL (CSV DOWNLOAD)
+        // ==========================================
+        function exportToExcel() {
+            if (state.orders.length === 0) {
+                showToast("No orders available to export.", "warning");
+                return;
+            }
+
+            const headers = ["Order ID", "Date", "Name", "Email", "Phone", "WhatsApp", "Seat", "Courier", "Event Name", "Package Name", "Price (LKR)", "Address", "Payment Status", "Studio No", "Start Image No", "End Image No"];
+            
+            const rows = state.orders.map(o => [
+                `"${o.orderId}"`,
+                `"${o.date}"`,
+                `"${o.name}"`,
+                `"${o.email}"`,
+                `"${o.phone}"`,
+                `"${o.whatsapp}"`,
+                `"${o.seat}"`,
+                `"${o.courier}"`,
+                `"${o.eventName}"`,
+                `"${o.packageName}"`,
+                o.price,
+                `"${o.address.replace(/"/g, '""')}"`,
+                `"${o.status}"`,
+                `"${o.studioNo}"`,
+                `"${o.startImg}"`,
+                `"${o.endImg}"`
+            ]);
+
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Photography_Event_Orders_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("Excel/CSV export downloaded successfully!", "success");
+        }
+
+        // ==========================================
+        // UTILITIES & MODAL HELPERS
+        // ==========================================
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: "bg-emerald-600 text-white",
+                error: "bg-rose-600 text-white",
+                warning: "bg-amber-500 text-slate-950",
+                info: "bg-slate-900 text-white"
+            };
+
+            toast.className = `px-4 py-3 rounded-xl shadow-xl font-medium text-xs flex items-center space-x-2 border border-white/10 transition transform translate-y-2 opacity-0 ${colors[type]}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function openScriptModal() {
+            document.getElementById('modal-script-code').classList.remove('hidden');
+        }
+
+        function closeScriptModal() {
+            document.getElementById('modal-script-code').classList.add('hidden');
+        }
+
+        // Initialize Default View
+        window.onload = function() {
+            switchTab('customer');
+        };
+    </script>
+</body>
+</html>
